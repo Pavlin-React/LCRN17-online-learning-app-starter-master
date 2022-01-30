@@ -1,11 +1,11 @@
-import React, {useRef, createRef} from 'react';
+import React, {useRef, createRef, useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
   Animated,
   TouchableOpacity,
   Image,
-  FlatList,
+  FlatList
 } from 'react-native';
 import {Home, Profile, Search} from '../../screens';
 import {constants, COLORS, FONTS, SIZES} from '../../constants';
@@ -16,13 +16,70 @@ let bottom_tabs = constants.bottom_tabs.map(bottom_tab => ({
   ref: createRef(),
 }));
 
-let Tabs = ({scrollX}) => {
+let TabIndicator = ({measureLayout, scrollX}) => {
+
+  let inputRange = bottom_tabs.map((_, i) => i * SIZES.width)
+
+  let tabIndicatorWidth = scrollX.interpolate({
+    inputRange,
+    outputRange: measureLayout.map(measure => measure.width)
+  })
+
+  let translateX = scrollX.interpolate({
+    inputRange,
+    outputRange: measureLayout.map(measure => measure.x)
+  })
+
   return (
-    <View style={{flex: 1, flexDirection: 'row'}}>
+    <Animated.View
+      style={{
+        position: 'absolute',
+        left: 0,
+        height: '100%',
+        width: tabIndicatorWidth,
+        borderRadius: SIZES.radius,
+        backgroundColor: COLORS.primary,
+        transform: [{
+          translateX
+        }]
+      }}
+    />
+  );
+};
+
+let Tabs = ({scrollX, onBottomTabPress}) => {
+  let containerRef = useRef();
+  let [measureLayout, setMeasureLayout] = useState([]);
+  useEffect(() => {
+    let ml = [];
+    bottom_tabs.forEach(bottom_tab => {
+      bottom_tab?.ref?.current?.measureLayout(
+        containerRef.current,
+        (x, y, width, height) => {
+          ml.push({
+            x,
+            y,
+            width,
+            height,
+          });
+          if (ml.length === bottom_tabs.length) {
+            setMeasureLayout(ml);
+          }
+        },
+      );
+    });
+  }, [containerRef.current]);
+  return (
+    <View ref={containerRef} style={{flex: 1, flexDirection: 'row'}}>
+      {/* Tab Indicator */}
+      {measureLayout.length > 0 && (
+        <TabIndicator measureLayout={measureLayout} scrollX={scrollX} />
+      )}
       {/* Tabs */}
       {bottom_tabs.map((item, index) => {
         return (
           <TouchableOpacity
+            onPress={() => onBottomTabPress(index)}
             key={`Bottom-Tab${index}`}
             ref={item.ref}
             style={{
@@ -31,6 +88,7 @@ let Tabs = ({scrollX}) => {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
+              
             <Image
               source={item.icon}
               resizeMode="contain"
@@ -55,18 +113,24 @@ let Tabs = ({scrollX}) => {
 };
 
 const MainLayout = () => {
-  let flatList = useRef();
+  let flatListRef = useRef();
   let scrollX = useRef(new Animated.Value(0)).current;
+  let onBottomTabPress = useCallback(bottomTabIndex => {
+    flatListRef?.current?.scrollToOffset({
+      offset: bottomTabIndex * SIZES.width
+    })
+  })
   let renderContent = () => {
     return (
       <View style={{flex: 1}}>
         <Animated.FlatList
-          ref={flatList}
-          pagingEnabled
+          ref={flatListRef}
           horizontal
+          pagingEnabled
           snapToAlignment="center"
           snapToInterval={SIZES.width}
           decelerationRate="fast"
+          scrollEnable={false}
           showHorizontalScrollIndicator={false}
           data={constants.bottom_tabs}
           keyExtractor={item => `Main-${item.id}`}
@@ -104,7 +168,7 @@ const MainLayout = () => {
               borderRadius: SIZES.radius,
               backgroundColor: COLORS.primary3,
             }}>
-            <Tabs scrollX={scrollX} />
+            <Tabs scrollX={scrollX} onBottomTabPress={onBottomTabPress} />
           </View>
         </Shadow>
       </View>
