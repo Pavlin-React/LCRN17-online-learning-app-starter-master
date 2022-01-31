@@ -2,7 +2,31 @@ import React from 'react';
 import {View, Text, ImageBackground, Image, ScrollView} from 'react-native';
 import {FlatList} from 'react-native-gesture-handler';
 import {dummyData, SIZES, COLORS, FONTS, images, icons} from '../../constants';
-import {IconButton, TextButton} from '../../components';
+import {
+  IconButton,
+  TextButton,
+  VerticalCourseCard,
+  LineDivider,
+} from '../../components';
+
+let Section = ({children, containerStyle, title, onPress}) => {
+  return (
+    <View style={{...containerStyle}}>
+      <View style={{flexDirection: 'row', paddingHorizontal: SIZES.padding}}>
+        <Text style={{flex: 1, ...FONTS.h2}}>{title}</Text>
+        <TextButton
+          contentContainerStyle={{
+            width: 80,
+            borderRadius: 30,
+            backgroundColor: COLORS.primary,
+          }}
+          label='See All'
+          onPress={onPress}
+        />
+      </View>
+    </View>
+  );
+};
 
 const Home = () => {
   function renderHeader() {
@@ -77,6 +101,39 @@ const Home = () => {
       </ImageBackground>
     );
   };
+  let renderCourses = () => {
+    return (
+      <FlatList
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        data={dummyData.courses_list_1}
+        listKey="Courses"
+        keyExtractor={item => `Courses-${item.id}`}
+        contentContainerStyle={{
+          marginTop: SIZES.padding,
+        }}
+        renderItem={({item, index}) => (
+          <VerticalCourseCard
+            containerStyle={{
+              marginLeft: index === 0 ? SIZES.padding : SIZES.radius,
+              marginRight:
+                index === dummyData.courses_list_1.length - 1
+                  ? SIZES.padding
+                  : 0,
+            }}
+            course={item}
+          />
+        )}
+      />
+    );
+  };
+  let renderCategories = () => {
+    return(
+      <Section title='Categories' >
+
+      </Section>
+    )
+  }
   return (
     <View style={{flex: 1, backgroundColor: COLORS.white}}>
       {/* Header */}
@@ -87,6 +144,11 @@ const Home = () => {
         showsVerticalScrollIndicator={false}>
         {/* Start Learning */}
         {renderStartLearning()}
+        {/* Courses */}
+        {renderCourses()}
+        <LineDivider lineStyle={{marginVertical: SIZES.padding}} />
+        {/* Categories */}
+        {renderCategories()}
       </ScrollView>
     </View>
   );
