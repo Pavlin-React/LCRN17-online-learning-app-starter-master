@@ -7,6 +7,8 @@ import {
   TextButton,
   VerticalCourseCard,
   LineDivider,
+  CategoryCard,
+  HorizontalCourseCard,
 } from '../../components';
 
 let Section = ({children, containerStyle, title, onPress}) => {
@@ -20,10 +22,11 @@ let Section = ({children, containerStyle, title, onPress}) => {
             borderRadius: 30,
             backgroundColor: COLORS.primary,
           }}
-          label='See All'
+          label="See All"
           onPress={onPress}
         />
       </View>
+      {children}
     </View>
   );
 };
@@ -128,9 +131,53 @@ const Home = () => {
     );
   };
   let renderCategories = () => {
+    return (
+      <Section title="Categories">
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          listKey="Categories"
+          data={dummyData.categories}
+          keyExtractor={item => `Categories-${item.id}`}
+          contentContainerStyle={{
+            marginTop: SIZES.radius,
+          }}
+          renderItem={({item, index}) => (
+            <CategoryCard
+              category={item}
+              containerStyle={{
+                marginLeft: index == 0 ? SIZES.padding : SIZES.base,
+                marginRight:
+                  index == dummyData.categories.length - 1 ? SIZES.padding : 0,
+              }}
+            />
+          )}
+        />
+      </Section>
+    );
+  };
+  let renderPopularCourses = () => {
     return(
-      <Section title='Categories' >
-
+      <Section title='Popular Courses' containerStyle={{marginTop: 30}} >
+        <FlatList
+          data={dummyData.courses_list_2}
+          listKey='Popular Courses'
+          scrollEnabled={false}
+          keyExtractor={item => `PopularCourses-${item.id}`}
+          contentContainerStyle={{
+            marginTop: SIZES.radius,
+            paddingHorizontal: SIZES.padding
+          }}
+          renderItem={({item, index}) => (
+            <HorizontalCourseCard
+              course={item}
+              containerStyle={{
+                marginVertical: SIZES.padding,
+                marginTop: index == 0 ? SIZES.radius : SIZES.padding
+              }}
+            />
+          )}
+        />
       </Section>
     )
   }
@@ -149,6 +196,8 @@ const Home = () => {
         <LineDivider lineStyle={{marginVertical: SIZES.padding}} />
         {/* Categories */}
         {renderCategories()}
+        {/* Popular Courses */}
+        {renderPopularCourses()}
       </ScrollView>
     </View>
   );
